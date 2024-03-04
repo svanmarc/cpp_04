@@ -6,34 +6,52 @@
 #    By: svanmarc <@student.42perpignan.fr>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/04 11:22:58 by svanmarc          #+#    #+#              #
-#    Updated: 2024/03/04 11:24:18 by svanmarc         ###   ########.fr        #
+#    Updated: 2024/03/04 11:49:37 by svanmarc         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = ex00
+name = ex00
 
-CC = c++
+SRC_DIR = srcs
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -Wshadow
+OBJS_DIR = objs
+OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJS_DIR)/%.o, $(SRCS))
 
-SRC = main.cpp Animal.cpp Dog.cpp Cat.cpp
+INCLUDES = -I./includes
 
-OBJ = $(SRC:.cpp=.o)
+CC = g++
+CFLAGS = -Wall -Wextra -Werror -g -std=c++98 -Wshadow $(INCLUDES)
 
-all: $(NAME)
+RM = rm -rf
 
-$(NAME): $(OBJ)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
+DEP_FILE = .depend
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) -o $@ -c $<
+all: $(name)
+
+$(name): $(OBJS)
+	@$(CC) $(CFLAGS) $(OBJS) -o $@ 
+	@echo "\033[32mCompilation done !\033[0m"
+
+$(OBJS_DIR):
+	@mkdir -p $(OBJS_DIR)
+
+$(OBJS_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJS_DIR)
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@echo "\033[32mCompilation of $< done !\033[0m"
 
 clean:
-	rm -rf $(OBJ)
+	$(RM) $(OBJS_DIR) $(DEP_FILE)
+	@echo "\033[31mObjects deleted !\033[0m"
 
 fclean: clean
-	rm -rf $(NAME)
+	$(RM) $(name)
+	@echo "\033[31m$(name) deleted !\033[0m"
 
 re: fclean all
 
-.PHONY: all clean fclean re
+$(DEP_FILE): $(SRCS) $(INCLUDES)
+	@$(CC) -MM $(SRCS) > $(DEP_FILE)
+
+-include $(DEP_FILE)
+
